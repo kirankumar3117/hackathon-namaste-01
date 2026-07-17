@@ -52,7 +52,7 @@ export default function CartPage() {
             <ShoppingBag size={32} className="text-gray-300" />
           </div>
           <h2 className="text-xl font-bold text-gray-900 mb-2">Your cart is empty</h2>
-          <p className="text-gray-500 mb-6">Looks like you haven't added anything to reserve yet.</p>
+          <p className="text-gray-500 mb-6">Looks like you haven&apos;t added anything to reserve yet.</p>
           <Link href="/" className="bg-green-600 text-white font-bold py-3 px-8 rounded-xl shadow-md hover:bg-green-700">
             Start Shopping
           </Link>

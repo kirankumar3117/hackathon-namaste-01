@@ -61,14 +61,14 @@ export default function CustomerHome() {
               <MapPin size={14} className="text-green-600" /> Delivering to:
             </div>
             <Popover open={openDesktopLocation} onOpenChange={setOpenDesktopLocation}>
-              <PopoverTrigger asChild>
+              <PopoverTrigger render={
                 <Button variant="ghost" role="combobox" aria-expanded={openDesktopLocation} className="h-8 px-2 font-bold text-gray-900 hover:bg-gray-50">
                   <span className="truncate max-w-[150px]">
                     {locationValue ? locations.find((loc) => loc.value === locationValue)?.label.split(',')[0] : "Select..."}
                   </span>
                   <ChevronsUpDown className="ml-1 h-3 w-3 shrink-0 opacity-50" />
                 </Button>
-              </PopoverTrigger>
+              } />
               <PopoverContent className="w-[280px] p-0" align="end">
                 <Command>
                   <CommandInput placeholder="Search location..." />
@@ -111,7 +111,7 @@ export default function CustomerHome() {
             </p>
             <div className="relative">
               <Popover open={openMobileLocation} onOpenChange={setOpenMobileLocation}>
-                <PopoverTrigger asChild>
+                <PopoverTrigger render={
                   <Button
                     variant="ghost"
                     role="combobox"
@@ -125,7 +125,7 @@ export default function CustomerHome() {
                     </span>
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                   </Button>
-                </PopoverTrigger>
+                } />
                 <PopoverContent className="w-[300px] p-0" align="start">
                   <Command>
                     <CommandInput placeholder="Search location..." />

@@ -9,7 +9,7 @@ export default function ShopDashboard() {
       <header className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Dashboard</h1>
-          <p className="text-slate-500">Welcome back! Here's what's happening at your store.</p>
+          <p className="text-slate-500">Welcome back! Here&apos;s what&apos;s happening at your store.</p>
         </div>
         <Link href="/products/new" className="hidden md:flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-green-700 transition-colors shadow-sm">
           <Plus size={18} /> Add Product

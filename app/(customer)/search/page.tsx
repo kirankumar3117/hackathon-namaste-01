@@ -53,7 +53,7 @@ export default function SearchPage() {
         ) : (
           <div className="space-y-4">
             <h3 className="text-sm font-semibold text-gray-500 mb-4 uppercase tracking-wider px-2">
-              Results for "{query}"
+              Results for &quot;{query}&quot;
             </h3>
             
             {/* Mock Results */}
