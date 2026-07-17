@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Search, MapPin, Sparkles, Image as ImageIcon, ChevronRight, ShoppingBag, Check, ChevronsUpDown, ScanLine } from 'lucide-react';
+import { Search, MapPin, Sparkles, Image as ImageIcon, ChevronRight, ShoppingBag, Check, ChevronsUpDown, ScanLine, Bell } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -26,34 +26,50 @@ const locations = [
 
 export default function CustomerHome() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [openLocation, setOpenLocation] = useState(false);
+  const [openDesktopLocation, setOpenDesktopLocation] = useState(false);
+  const [openMobileLocation, setOpenMobileLocation] = useState(false);
   const [locationValue, setLocationValue] = useState("vijayawada");
 
   return (
     <div className="flex flex-col gap-8 fade-in">
-      <header className="flex justify-between items-center bg-white p-4 rounded-2xl shadow-sm">
-        <div className="flex-1">
-          <p className="text-xs text-gray-500 flex items-center gap-1 mb-1">
-            <MapPin size={14} className="text-green-600" /> Delivering to
-          </p>
-          <div className="relative">
-            <Popover open={openLocation} onOpenChange={setOpenLocation}>
+      {/* DESKTOP TOP NAV (Hidden on Mobile) */}
+      <header className="hidden md:flex h-[72px] bg-white border-b border-gray-100 items-center justify-between px-8 mb-2 -mx-6 -mt-6">
+        <div className="relative w-[400px]">
+          <input 
+            type="text" 
+            placeholder="Search for items or stores..." 
+            className="w-full bg-gray-50 border border-gray-100 rounded-full py-2.5 pl-4 pr-12 text-sm font-medium text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-all"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+          <Search className="absolute right-12 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+          <div className="absolute inset-y-0 right-2 flex items-center">
+            <Link href="/scan" className="p-1.5 text-green-600 hover:bg-green-50 rounded-lg transition-colors">
+              <ScanLine size={16} />
+            </Link>
+          </div>
+        </div>
+        
+        <div className="flex items-center gap-6">
+          <button className="relative text-gray-400 hover:text-gray-700 transition-colors">
+            <Bell size={20} />
+            <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
+          </button>
+          
+          <div className="flex items-center gap-2 pl-4 border-l border-gray-100">
+            <div className="text-xs text-gray-500 font-medium flex items-center gap-1">
+              <MapPin size={14} className="text-green-600" /> Delivering to:
+            </div>
+            <Popover open={openDesktopLocation} onOpenChange={setOpenDesktopLocation}>
               <PopoverTrigger asChild>
-                <Button
-                  variant="ghost"
-                  role="combobox"
-                  aria-expanded={openLocation}
-                  className="w-full justify-between p-0 h-auto font-semibold text-gray-900 bg-transparent hover:bg-transparent hover:text-green-700"
-                >
-                  <span className="truncate">
-                    {locationValue
-                      ? locations.find((loc) => loc.value === locationValue)?.label
-                      : "Select location..."}
+                <Button variant="ghost" role="combobox" aria-expanded={openDesktopLocation} className="h-8 px-2 font-bold text-gray-900 hover:bg-gray-50">
+                  <span className="truncate max-w-[150px]">
+                    {locationValue ? locations.find((loc) => loc.value === locationValue)?.label.split(',')[0] : "Select..."}
                   </span>
-                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  <ChevronsUpDown className="ml-1 h-3 w-3 shrink-0 opacity-50" />
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-[300px] p-0" align="start">
+              <PopoverContent className="w-[280px] p-0" align="end">
                 <Command>
                   <CommandInput placeholder="Search location..." />
                   <CommandList>
@@ -65,7 +81,7 @@ export default function CustomerHome() {
                           value={loc.value}
                           onSelect={(currentValue) => {
                             setLocationValue(currentValue === locationValue ? "" : currentValue)
-                            setOpenLocation(false)
+                            setOpenDesktopLocation(false)
                           }}
                         >
                           <Check
@@ -86,6 +102,87 @@ export default function CustomerHome() {
         </div>
       </header>
 
+      {/* MOBILE HEADER (Hidden on Desktop) */}
+      <header className="md:hidden flex flex-col gap-4 bg-white p-4 rounded-b-3xl shadow-sm -mx-4 -mt-4 mb-2">
+        <div className="flex justify-between items-center">
+          <div className="flex-1">
+            <p className="text-xs text-gray-500 flex items-center gap-1 mb-1">
+              <MapPin size={14} className="text-green-600" /> Delivering to
+            </p>
+            <div className="relative">
+              <Popover open={openMobileLocation} onOpenChange={setOpenMobileLocation}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    role="combobox"
+                    aria-expanded={openMobileLocation}
+                    className="w-full justify-between p-0 h-auto font-semibold text-gray-900 bg-transparent hover:bg-transparent hover:text-green-700"
+                  >
+                    <span className="truncate">
+                      {locationValue
+                        ? locations.find((loc) => loc.value === locationValue)?.label
+                        : "Select location..."}
+                    </span>
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[300px] p-0" align="start">
+                  <Command>
+                    <CommandInput placeholder="Search location..." />
+                    <CommandList>
+                      <CommandEmpty>No location found.</CommandEmpty>
+                      <CommandGroup>
+                        {locations.map((loc) => (
+                          <CommandItem
+                            key={loc.value}
+                            value={loc.value}
+                            onSelect={(currentValue) => {
+                              setLocationValue(currentValue === locationValue ? "" : currentValue)
+                              setOpenMobileLocation(false)
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4 shrink-0",
+                                locationValue === loc.value ? "opacity-100" : "opacity-0"
+                              )}
+                            />
+                            {loc.label}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+            </div>
+          </div>
+          <button className="relative p-2 text-gray-400 hover:text-gray-600 bg-gray-50 rounded-full">
+            <Bell size={20} />
+            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
+          </button>
+        </div>
+        
+        {/* Search Bar (Mobile) */}
+        <div className="relative group">
+          <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+            <Search className="h-5 w-5 text-gray-400 group-focus-within:text-green-500 transition-colors" />
+          </div>
+          <input
+            type="text"
+            className="w-full bg-gray-50 border border-gray-100 py-3.5 pl-12 pr-14 rounded-2xl text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:bg-white transition-all text-sm font-medium"
+            placeholder="Search for groceries, medicines..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+          <div className="absolute inset-y-0 right-2 flex items-center">
+            <Link href="/scan" className="p-2 bg-green-50 text-green-600 rounded-xl hover:bg-green-100 transition-colors">
+              <ScanLine className="h-5 w-5" />
+            </Link>
+          </div>
+        </div>
+      </header>
+
       {/* Hero Section / AI Scanner */}
       <section className="bg-gradient-to-r from-green-500 to-emerald-600 rounded-3xl p-6 md:p-10 text-white shadow-lg relative overflow-hidden">
         <div className="relative z-10 md:w-2/3">
@@ -102,24 +199,7 @@ export default function CustomerHome() {
         <div className="absolute right-0 bottom-0 opacity-20 md:opacity-100 md:right-10 md:-bottom-10 w-48 h-48 md:w-80 md:h-80 bg-white rounded-full mix-blend-overlay blur-3xl"></div>
       </section>
 
-      {/* Search Bar */}
-      <div className="relative group">
-        <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
-          <Search className="h-5 w-5 text-gray-400 group-focus-within:text-green-500 transition-colors" />
-        </div>
-        <input
-          type="text"
-          className="w-full bg-white border-0 py-4 pl-12 pr-14 rounded-2xl shadow-sm text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-green-500 outline-none transition-all"
-          placeholder="Search for groceries, medicines..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-        />
-        <div className="absolute inset-y-0 right-2 flex items-center">
-          <Link href="/scan" className="p-2 bg-green-50 text-green-600 rounded-xl hover:bg-green-100 transition-colors">
-            <ScanLine className="h-5 w-5" />
-          </Link>
-        </div>
-      </div>
+
 
       {/* Categories */}
       <section>
