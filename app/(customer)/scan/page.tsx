@@ -1,13 +1,100 @@
 'use client';
 
-import { useState } from 'react';
-import { Upload, Camera, FileText, ArrowLeft, Loader2, Sparkles, MapPin } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { Upload, Camera, FileText, ArrowLeft, Loader2, Sparkles, MapPin, X } from 'lucide-react';
 import Link from 'next/link';
 
 export default function AIScanPage() {
   const [textList, setTextList] = useState('');
   const [isScanning, setIsScanning] = useState(false);
   const [results, setResults] = useState<any>(null);
+  
+  const [isCameraOpen, setIsCameraOpen] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [stream, setStream] = useState<MediaStream | null>(null);
+
+  const uploadInputRef = useRef<HTMLInputElement>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [fileError, setFileError] = useState<string>('');
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    setFileError('');
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      setFileError('File size must be less than 5MB');
+      setSelectedFile(null);
+      return;
+    }
+
+    if (!file.type.startsWith('image/') && file.type !== 'application/pdf') {
+      setFileError('Only Images and PDFs are supported');
+      setSelectedFile(null);
+      return;
+    }
+
+    setSelectedFile(file);
+    setTextList("Extracted from: " + file.name + "\nRice 1kg\nOil 1 liter"); // Simulated extraction
+  };
+
+  const openCamera = async () => {
+    try {
+      const mediaStream = await navigator.mediaDevices.getUserMedia({ 
+        video: { facingMode: 'environment' } 
+      });
+      setStream(mediaStream);
+      setIsCameraOpen(true);
+    } catch (err) {
+      console.error("Error accessing camera:", err);
+      setFileError("Camera permission denied or not available on this device.");
+    }
+  };
+
+  useEffect(() => {
+    if (isCameraOpen && videoRef.current && stream) {
+      videoRef.current.srcObject = stream;
+    }
+  }, [isCameraOpen, stream]);
+
+  const closeCamera = () => {
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop());
+    }
+    setStream(null);
+    setIsCameraOpen(false);
+  };
+
+  const capturePhoto = () => {
+    if (videoRef.current && canvasRef.current) {
+      const video = videoRef.current;
+      const canvas = canvasRef.current;
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        canvas.toBlob((blob) => {
+          if (blob) {
+            const file = new File([blob], "camera-capture.jpg", { type: "image/jpeg" });
+            setFileError('');
+            setSelectedFile(file);
+            setTextList("Extracted from: camera-capture.jpg\nRice 1kg\nOil 1 liter");
+            closeCamera();
+          }
+        }, 'image/jpeg');
+      }
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+      }
+    };
+  }, [stream]);
 
   const handleScan = async () => {
     if (!textList.trim()) return;
@@ -32,6 +119,35 @@ export default function AIScanPage() {
 
   return (
     <div className="flex flex-col gap-6 fade-in pb-20">
+      {isCameraOpen && (
+        <div className="fixed inset-0 bg-black z-50 flex flex-col fade-in">
+          <div className="flex justify-between items-center p-4 bg-black/50 text-white absolute top-0 left-0 right-0 z-10">
+            <button onClick={closeCamera} className="p-2 bg-gray-800 rounded-full hover:bg-gray-700 transition-colors">
+              <ArrowLeft size={24} />
+            </button>
+            <span className="font-semibold">Take Photo</span>
+            <div className="w-10"></div>
+          </div>
+          
+          <video 
+            ref={videoRef} 
+            autoPlay 
+            playsInline 
+            className="flex-1 w-full h-full object-cover"
+          />
+          <canvas ref={canvasRef} className="hidden" />
+          
+          <div className="absolute bottom-0 left-0 right-0 p-8 flex justify-center bg-gradient-to-t from-black/80 to-transparent pb-16">
+            <button 
+              onClick={capturePhoto} 
+              className="w-20 h-20 rounded-full border-4 border-white bg-white/20 flex items-center justify-center hover:bg-white/40 transition-all active:scale-95"
+            >
+              <div className="w-16 h-16 rounded-full bg-white"></div>
+            </button>
+          </div>
+        </div>
+      )}
+
       <header className="flex items-center gap-4 bg-white p-4 rounded-2xl shadow-sm">
         <Link href="/" className="p-2 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors">
           <ArrowLeft size={20} />
@@ -45,16 +161,35 @@ export default function AIScanPage() {
             <h2 className="font-semibold text-gray-900 mb-2">Upload handwritten list</h2>
             <p className="text-sm text-gray-500 mb-6">Take a photo of your list and let AI read it for you.</p>
             
-            <div className="flex gap-4">
-              <button className="flex-1 flex flex-col items-center justify-center gap-2 bg-green-50 text-green-700 py-8 rounded-2xl border-2 border-dashed border-green-200 hover:bg-green-100 transition-colors">
+            <div className="flex gap-4 mb-3">
+              <input
+                type="file"
+                accept="image/*,application/pdf"
+                ref={uploadInputRef}
+                className="hidden"
+                onChange={handleFileChange}
+              />
+              <button 
+                onClick={openCamera}
+                className="flex-1 flex flex-col items-center justify-center gap-2 bg-green-50 text-green-700 py-6 rounded-2xl border-2 border-dashed border-green-200 hover:bg-green-100 transition-colors"
+              >
                 <Camera size={32} />
                 <span className="font-medium text-sm">Take Photo</span>
               </button>
-              <button className="flex-1 flex flex-col items-center justify-center gap-2 bg-blue-50 text-blue-700 py-8 rounded-2xl border-2 border-dashed border-blue-200 hover:bg-blue-100 transition-colors">
+              <button 
+                onClick={() => uploadInputRef.current?.click()}
+                className="flex-1 flex flex-col items-center justify-center gap-2 bg-blue-50 text-blue-700 py-6 rounded-2xl border-2 border-dashed border-blue-200 hover:bg-blue-100 transition-colors"
+              >
                 <Upload size={32} />
-                <span className="font-medium text-sm">Upload Image</span>
+                <span className="font-medium text-sm">Upload File</span>
               </button>
             </div>
+            
+            <p className="text-xs text-gray-500 text-center mb-2">
+              Supported formats: JPG, PNG, PDF (Max size: 5MB)
+            </p>
+            {fileError && <p className="text-xs text-red-500 text-center mb-2">{fileError}</p>}
+            {selectedFile && <p className="text-sm text-green-600 text-center mb-2 font-medium">Selected: {selectedFile.name}</p>}
           </div>
 
           <div className="text-center relative">

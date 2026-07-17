@@ -1,24 +1,88 @@
 'use client';
 
 import { useState } from 'react';
-import { Search, MapPin, Sparkles, Image as ImageIcon, ChevronRight, ShoppingBag } from 'lucide-react';
+import { Search, MapPin, Sparkles, Image as ImageIcon, ChevronRight, ShoppingBag, Check, ChevronsUpDown, ScanLine } from 'lucide-react';
 import Link from 'next/link';
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+
+const locations = [
+  { value: "vijayawada", label: "Vijayawada, Andhra Pradesh" },
+  { value: "kanchikacherla", label: "Kanchikacherla, Andhra Pradesh" },
+];
 
 export default function CustomerHome() {
   const [searchQuery, setSearchQuery] = useState('');
+  const [openLocation, setOpenLocation] = useState(false);
+  const [locationValue, setLocationValue] = useState("vijayawada");
 
   return (
     <div className="flex flex-col gap-8 fade-in">
-      {/* Header / Location */}
       <header className="flex justify-between items-center bg-white p-4 rounded-2xl shadow-sm">
-        <div>
-          <p className="text-xs text-gray-500 flex items-center gap-1">
+        <div className="flex-1">
+          <p className="text-xs text-gray-500 flex items-center gap-1 mb-1">
             <MapPin size={14} className="text-green-600" /> Delivering to
           </p>
-          <h2 className="font-semibold text-gray-900">Vijayawada, Andhra Pradesh</h2>
-        </div>
-        <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center overflow-hidden">
-          <UserAvatar />
+          <div className="relative">
+            <Popover open={openLocation} onOpenChange={setOpenLocation}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="ghost"
+                  role="combobox"
+                  aria-expanded={openLocation}
+                  className="w-full justify-between p-0 h-auto font-semibold text-gray-900 bg-transparent hover:bg-transparent hover:text-green-700"
+                >
+                  <span className="truncate">
+                    {locationValue
+                      ? locations.find((loc) => loc.value === locationValue)?.label
+                      : "Select location..."}
+                  </span>
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[300px] p-0" align="start">
+                <Command>
+                  <CommandInput placeholder="Search location..." />
+                  <CommandList>
+                    <CommandEmpty>No location found.</CommandEmpty>
+                    <CommandGroup>
+                      {locations.map((loc) => (
+                        <CommandItem
+                          key={loc.value}
+                          value={loc.value}
+                          onSelect={(currentValue) => {
+                            setLocationValue(currentValue === locationValue ? "" : currentValue)
+                            setOpenLocation(false)
+                          }}
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4 shrink-0",
+                              locationValue === loc.value ? "opacity-100" : "opacity-0"
+                            )}
+                          />
+                          {loc.label}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
+          </div>
         </div>
       </header>
 
@@ -45,11 +109,16 @@ export default function CustomerHome() {
         </div>
         <input
           type="text"
-          className="w-full bg-white border-0 py-4 pl-12 pr-4 rounded-2xl shadow-sm text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-green-500 outline-none transition-all"
+          className="w-full bg-white border-0 py-4 pl-12 pr-14 rounded-2xl shadow-sm text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-green-500 outline-none transition-all"
           placeholder="Search for groceries, medicines..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
+        <div className="absolute inset-y-0 right-2 flex items-center">
+          <Link href="/scan" className="p-2 bg-green-50 text-green-600 rounded-xl hover:bg-green-100 transition-colors">
+            <ScanLine className="h-5 w-5" />
+          </Link>
+        </div>
       </div>
 
       {/* Categories */}
@@ -119,11 +188,4 @@ const stores = [
   { id: 3, name: 'Ravi Electronics', distance: '2.4 km', rating: 4.6, emoji: '⚡' },
 ];
 
-function UserAvatar() {
-  return (
-    <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M20 20C24.4183 20 28 16.4183 28 12C28 7.58172 24.4183 4 20 4C15.5817 4 12 7.58172 12 12C12 16.4183 15.5817 20 20 20Z" fill="#CBD5E1"/>
-      <path d="M10 32.5C10 26.9772 14.4772 22.5 20 22.5C25.5228 22.5 30 26.9772 30 32.5C30 33.8807 28.8807 35 27.5 35H12.5C11.1193 35 10 33.8807 10 32.5Z" fill="#CBD5E1"/>
-    </svg>
-  );
-}
+
